@@ -212,6 +212,10 @@ Section -DoEnanoDBSetup
 SectionEnd
 
 Section -InsertApplistEntry
+  ; Skip if this is WAPPStack, it doesn't have an applications.html. (!)
+  StrCmp $stack_type "WAPP" 0 +2
+    Return
+  
   Call enano_add_to_applist
 SectionEnd
 
