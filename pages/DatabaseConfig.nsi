@@ -125,7 +125,8 @@ Function DatabaseConfigLeave
         Abort
         
       ; If we're root, we can assume the login doesn't exist yet, so skip the validation
-      IntCmp $db_needroot 0 +2
+      IntCmp $db_needroot 0 +3
+        LockWindow on
         Return
         
       ${db_connect} $R0 $db_user $db_password
@@ -144,6 +145,7 @@ Function DatabaseConfigLeave
                                            fail. This option is recommended only for advanced users." IDYES +2
         Abort ; on No
       
+      LockWindow on
       Return
       
     GenerateRandomLogin:
@@ -151,6 +153,7 @@ Function DatabaseConfigLeave
       StrCpy $db_user "bn_enanocms"
       Call GenerateRandomPassword
       Pop $db_password
+      LockWindow on
       Return
   
 FunctionEnd

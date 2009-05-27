@@ -32,12 +32,14 @@ Function StackSelectLeave
       ; User selected WAMP
       Call BNSetVarsForWAMP
       !insertmacro ConfigCheck
+      LockWindow on
       Return
       
     UserSelectedWAPP:
       ; User selected WAPP
       Call BNSetVarsForWAPP
       !insertmacro ConfigCheck
+      LockWindow on
       Return
   
   OnlyOneStackInstalled:
@@ -45,11 +47,13 @@ Function StackSelectLeave
     ; MySQL
     Call BNSetVarsForWAMP
     !insertmacro ConfigCheck
+    LockWindow on
     Return
     
     ; PostgreSQL
     Call BNSetVarsForWAPP
     !insertmacro ConfigCheck
+    LockWindow on
     Return
 FunctionEnd
 

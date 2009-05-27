@@ -30,5 +30,7 @@ Function CredentialsLeave
   StrCmp $admin_email "" 0 +3
     MessageBox MB_OK|MB_ICONEXCLAMATION "Please enter your e-mail address."
     Abort
+    
+  LockWindow on
 FunctionEnd
 

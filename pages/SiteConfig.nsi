@@ -37,10 +37,12 @@ Function SiteConfigLeave
   ReadINIStr $0 "$PLUGINSDIR\SiteConfig.ini" "Field 6" "State"
   IntCmp $0 1 0 +2 +2
     StrCpy $start_with "tutorial"
+    
+  LockWindow on
 FunctionEnd
 
 Function CleanCopyright
   Pop $0
-  ${str_replace} $0 "©" "&copy;" "$0"
+  ${str_replace} $0 "ï¿½" "&copy;" "$0"
   Push $0
 FunctionEnd
