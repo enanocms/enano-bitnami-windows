@@ -6,10 +6,14 @@
   !system 'hg -R "${ENANO_ROOT}" update'
   
   SetOutPath "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs"
-  File /r /x .hg /x .hgtags "${ENANO_ROOT}"
+  File /r /x .hg /x .hgtags "${ENANO_ROOT}\*"
 !macroend
 
 !macro Core_Uninstall
   ; I'm sorry, but 1,000 files don't deserve to be listed out.
-  RmDir /r "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs"
+  RmDir /r "$INSTDIR\htdocs"
+  RmDir /r "$INSTDIR\conf"
+  RmDir /r "$INSTDIR\scripts"
+  Delete "$INSTDIR\uninstall.exe"
+  RmDir "$INSTDIR"
 !macroend

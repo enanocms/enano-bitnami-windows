@@ -8,6 +8,7 @@
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define PRODUCT_SHORTNAME "enanocms"
+; !define UNINSTALL_DEBUG
 
 !ifndef ENANO_ROOT
 !define ENANO_ROOT "Q:\enano-1.1\repo"
@@ -38,6 +39,7 @@ Var site_desc
 Var site_copyright
 Var url_scheme
 Var start_with
+Var skip_install
 
 !include "inst-resources\bitnamiutils.nsh"
 !include "inst-resources\dbal.nsh"
@@ -49,6 +51,11 @@ Var start_with
 !include "inst-resources\applist.nsh"
 
 Function .onInit
+  !ifdef UNINSTALL_DEBUG
+    WriteUninstaller "$EXEDIR\uninstall.exe"
+    MessageBox MB_OKCANCEL "Uninstaller written. OK to run installer, Cancel to quit" IDOK +2
+      Abort
+  !endif
   Call BNSetWAMPInstalledFlag
   Call BNSetWAPPInstalledFlag
   
@@ -75,6 +82,7 @@ FunctionEnd
 !define XPUI_BRANDINGTEXT_COLOR_FG "b6d9ff"
 !define XPUI_BRANDINGTEXT_COLOR_BG "4c5b6b"
 !define XPUI_FASTERSKINNING
+!define XPUI_UNINSTALLER
 
 ; MUI 1.67 compatible / XPUI 1.11 (2.0pre) compatible ------
 !ifndef XPUI_SYSDIR
@@ -88,10 +96,14 @@ FunctionEnd
 !define MUI_UNICON "inst-resources\generic-uninstall.ico"
 !include "WinMessages.nsh"
 
+;
+; INSTALL PAGES
+;
+
 ; Welcome page
 !insertmacro XPUI_PAGE_WELCOME2
 ; License page
-!insertmacro MUI_PAGE_LICENSE "licenses\GPL.txt"
+!insertmacro XPUI_PAGE_LICENSE "licenses\GPL.txt"
 ; Stack selection - automatic unless both stacks are installed
 !include "pages\StackSelect.nsi"
 ; Database credentials entry
@@ -101,9 +113,9 @@ FunctionEnd
 ; User credentials page
 !include "pages\Login.nsi"
 ; Components page
-!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro XPUI_PAGE_COMPONENTS
 ; Instfiles page
-!insertmacro MUI_PAGE_INSTFILES
+!insertmacro XPUI_PAGE_INSTFILES
 ; Finish page
 !define XPUI_FINISHPAGE_RUN
 !define XPUI_FINISHPAGE_CHECKBOX_RUN "Go to my new $(^Name) website now"
@@ -115,8 +127,14 @@ FunctionEnd
 
 !insertmacro XPUI_PAGE_ABORT
 
-; Uninstaller pages
-!insertmacro MUI_UNPAGE_INSTFILES
+;
+; UNINSTALL PAGES
+;
+
+!insertmacro XPUI_PAGEMODE_UNINST
+!insertmacro XPUI_PAGE_WELCOME2
+!insertmacro XPUI_PAGE_INSTFILES
+!insertmacro XPUI_PAGE_FINISH
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
@@ -139,6 +157,16 @@ ShowUnInstDetails show
 
 Section "-pre"
   StrCpy $INSTDIR "$stack_instdir"
+  StrCpy $skip_install 0
+  
+  StrCmp $db_needroot 0 0 SkipManualCheck
+    ; If we were given our own DB credentials and there's already a config, the installation needs to be skipped
+    IfFileExists "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php" 0 SkipManualCheck
+      StrCpy $skip_install 1
+      Return
+      
+  SkipManualCheck:
+  
   IfFileExists "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php" 0 +2
     Delete "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php"
 SectionEnd
@@ -164,11 +192,18 @@ SectionEnd
 
 Section "Enano Core" SEC01
   SectionIn RO
+  WriteUninstaller "$INSTDIR\apps\${PRODUCT_SHORTNAME}\uninstall.exe"
   !insertmacro Core_Install
 SectionEnd
 
 Section "Enable GMP in PHP" SecGMP
   ClearErrors
+  IfFileExists "$stack_instdir\php\ext\php_gmp.dll" +3
+  
+    ; No GMP
+    MessageBox MB_OK|MB_ICONEXCLAMATION "The stack you selected does not contain the GMP extension, so it cannot be enabled. Logins will be several seconds slower. Please consider upgrading your stack."
+    Return
+  
   WriteINIStr "$stack_instdir\php\php.ini" "GMP" "extension" "php_gmp.dll"
   IfErrors 0 +2
     MessageBox MB_OK|MB_ICONEXCLAMATION "GMP was not automatically enabled in PHP. Logins will be several seconds slower."
@@ -201,14 +236,14 @@ Section -ConfigureApache
   DetailPrint "Restarting Apache"
   nsExec::Exec '"$SYSDIR\net.exe" stop "$stack_typestackApache"'
   nsExec::Exec '"$SYSDIR\net.exe" start "$stack_typestackApache"'
-SectionEnd
-
-Section -WriteKickStart
+  StrCmp $skip_install 1 0 +2
+    Return
+  
   Call enano_write_kickstart_script
-SectionEnd
-
-Section -DoEnanoDBSetup
   Call enano_run_kickstart_script
+  
+  SetOutPath "$INSTDIR\apps\${PRODUCT_SHORTNAME}\scripts"
+  File "inst-resources\selfdestruct.php"
 SectionEnd
 
 Section -InsertApplistEntry
@@ -223,13 +258,12 @@ Section -AdditionalIcons
   WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
   CreateDirectory "$SMPROGRAMS\Enano CMS"
   CreateShortCut "$SMPROGRAMS\Enano CMS\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
-  CreateShortCut "$SMPROGRAMS\Enano CMS\Uninstall.lnk" "$INSTDIR\apps\${PRODUCT_SHORTNAME}\uninst.exe"
+  CreateShortCut "$SMPROGRAMS\Enano CMS\Uninstall.lnk" "$INSTDIR\apps\${PRODUCT_SHORTNAME}\uninstall.exe"
 SectionEnd
 
 Section -Post
-  WriteUninstaller "$INSTDIR\uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\apps\${PRODUCT_SHORTNAME}\uninstall.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
@@ -249,20 +283,52 @@ SectionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
-Function un.onUninstSuccess
-  HideWindow
-  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) was successfully removed from your computer."
-FunctionEnd
-
 Function un.onInit
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
-  Abort
+  
+  StrCpy $stack_instdir "$INSTDIR\..\.."
+  ; this is probably a bad way to determine the stack type
+  ClearErrors
+  StrCpy $stack_type "wamp"
+  ReadINIStr $0 "$stack_instdir\properties.ini" "MySQL" "mysql_port"
+  IfErrors 0 +2
+    StrCpy $stack_type "wapp"
+    
 FunctionEnd
 
 Section Uninstall
+  
+  ; Confirm uninstall
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you really sure you want to uninstall ${PRODUCT_NAME}?$\r$\n\
+                                                 $\r$\n\
+                                                 Removing ${PRODUCT_NAME} will delete everything that it installed, including your database. If you do not want to \
+                                                 lose data, cancel this uninstaller and back up your database before uninstalling.$\r$\n\
+                                                 $\r$\n\
+                                                 The ${PRODUCT_NAME} uninstaller also deletes any uploaded files, plugins and themes that you may have installed." IDYES +2
+    Abort
+  
   Delete "$INSTDIR\apps\${PRODUCT_SHORTNAME}\${PRODUCT_NAME}.url"
 
+  ; Remove from Apache config
+  DetailPrint "Removing ${PRODUCT_NAME} from Apache configuration"
+  Call un.disable_in_apache_config
+  
+  ; Remove from applications.html
+  ; SON OF A BITCH. BitNami, please, PLEASE make applications.html a PHP script that includes all files in a directory.
+  DetailPrint "Removing ${PRODUCT_NAME} from applications.html"
+  Call un.disable_in_applications_html
+  
+  ; Restart Apache
+  DetailPrint "Restarting Apache"
+  nsExec::Exec '"$SYSDIR\net.exe" stop "$stack_typestackApache"'
+  nsExec::Exec '"$SYSDIR\net.exe" start "$stack_typestackApache"'
+  
+  DetailPrint "Uninstalling database"
+  nsExec::ExecToLog '"$stack_instdir\php\php.exe" "$INSTDIR\scripts\selfdestruct.php"'
+  
+  DetailPrint "Deleting files..."
+  SetDetailsPrint listonly
   !insertmacro Core_Uninstall
+  SetDetailsPrint both
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   SetAutoClose true

@@ -105,4 +105,4 @@ FunctionEnd
 !macroend
 
 !insertmacro StrStr ""
-; !insertmacro StrStr "un."
+!insertmacro StrStr "un."

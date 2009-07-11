@@ -59,3 +59,4 @@ Function ks_error
   MessageBox MB_OK|MB_ICONEXCLAMATION "Setup failed to $0. You will need to install $(^Name) manually. To do this, navigate to:$\r$\n$\r$\n    http://localhost/apps/${PRODUCT_SHORTNAME}/$\r$\n$\r$\nYou will be presented with a screen that will allow you to continue the $(^Name) installation.$\r$\n$\r$\nYour database information is:$\r$\n$\r$\n  Server type: $db_dbmsname$\r$\n  Hostname: localhost$\r$\n  Port: $db_port$\r$\n  Database name: $db_name$\r$\n  Database user: $db_user$\r$\n  Database password: $db_password"
   Abort "Could not $0!"
 FunctionEnd
+

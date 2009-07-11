@@ -21,13 +21,51 @@ Function DatabaseConfigCreate
   WriteINIStr "$PLUGINSDIR\DatabaseConfig.ini" "Field 9" "Text" \
     "$(^Name) needs database access to work properly. Setup can create a database for you if you provide \
      $db_dbmsname's administration password, or you can choose to enter credentials for a database that already exists."
-
+     
+  StrCpy $R2 0 ; Hide manual credential items
+  StrCpy $R3 0 ; Hide root password/set manual to disabled
+     
+  ; if the back button was clicked we might have use manual checked
+  ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Field 3" "State"
+  IntCmp $0 1 UseManualIsOn
+  
+    StrCpy $R2 1
+    
+  UseManualIsOn:
+    
+    ; do we need to disable the checkbox?
+    ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Field 2" "State"
+    IntCmp $0 1   0 ShowDialog ShowDialog
+    
+      StrCpy $R3 1
+      
+  ShowDialog:
+    
   !insertmacro XPUI_INSTALLOPTIONS_INITDIALOG "DatabaseConfig.ini"
   Pop $XPUI_HWND
+  
+  IntCmp $R2 1 "" SkipHideManual
+  
+    ${ShowRange} $XPUI_HWND 1204 1207 ${SW_HIDE}
+    ${ShowRange} $XPUI_HWND 1210 1213 ${SW_HIDE}
+    
+  SkipHideManual:
+    
+  IntCmp $R3 1 "" SkipForceManual
 
-  ${ShowRange} $XPUI_HWND 1204 1207 ${SW_HIDE}
-  ${ShowRange} $XPUI_HWND 1210 1213 ${SW_HIDE}
+    ; check the box and disable
+    GetDlgItem $0 $XPUI_HWND 1202
+    SendMessage $0 ${BM_SETCHECK} ${BST_CHECKED} 0
+    EnableWindow $0 0
+    
+    ; hide the root password, enter manually is selected
+    GetDlgItem $0 $XPUI_HWND 1203
+    ShowWindow $0 ${SW_HIDE}
+    GetDlgItem $0 $XPUI_HWND 1209
+    ShowWindow $0 ${SW_HIDE}
 
+  SkipForceManual:
+    
   !insertmacro XPUI_INSTALLOPTIONS_SHOW
 FunctionEnd
 
