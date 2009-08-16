@@ -17,6 +17,27 @@
 SetCompressor /FINAL /SOLID lzma
 CRCCheck force
 
+!include "WinMessages.nsh"
+
+; ExperienceUI 1.3.1 compatible
+!ifndef XPUI_SYSDIR
+  !define XPUI_SYSDIR "P:\exui\Contrib\ExperienceUI"
+!endif
+!include "${XPUI_SYSDIR}\XPUI.nsh"
+
+; ExperienceUI GUI parameters
+!define XPUI_BGIMAGE
+!define XPUI_BGIMAGE_BMP "gfx\enano-bg.bmp"
+!define XPUI_TEXT_COLOR "F2F2F2"
+!define XPUI_TEXT_BGCOLOR "202020" ; irrelevant but still
+!define XPUI_TEXT_LIGHTCOLOR "B4C3EA"
+!define XPUI_ABORTWARNING
+!define XPUI_BRANDINGTEXT "NSIS Installer ${NSIS_VERSION}"
+!define XPUI_BRANDINGTEXT_COLOR_FG "b6d9ff"
+!define XPUI_BRANDINGTEXT_COLOR_BG "4c5b6b"
+!define XPUI_FASTERSKINNING
+!define XPUI_UNINSTALLER
+
 Var wampstack_installed
 Var wappstack_installed
 Var stack_type
@@ -50,72 +71,34 @@ Var skip_install
 !include "inst-resources\apacheconfig.nsh"
 !include "inst-resources\applist.nsh"
 
-Function .onInit
-  !ifdef UNINSTALL_DEBUG
-    WriteUninstaller "$EXEDIR\uninstall.exe"
-    MessageBox MB_OKCANCEL "Uninstaller written. OK to run installer, Cancel to quit" IDOK +2
-      Abort
-  !endif
-  Call BNSetWAMPInstalledFlag
-  Call BNSetWAPPInstalledFlag
-  
-  ; If neither WAMP nor WAPP is installed, die
-  StrCmp $wampstack_installed 0 "" FoundStack
-  StrCmp $wampstack_installed 0 "" FoundStack
-
-    MessageBox MB_OK|MB_ICONEXCLAMATION "Setup could not find any BitNami stacks on your server.$\r$\n\
-                                         $\r$\n\
-                                         Please install a BitNami stack and re-run setup. You can download a BitNami stack for free from http://www.bitnami.org."
-    Abort
-
-  FoundStack:
-FunctionEnd
-
-; ExperienceUI GUI parameters
-!define XPUI_BGIMAGE
-!define XPUI_BGIMAGE_BMP "gfx\enano-bg.bmp"
-!define XPUI_TEXT_COLOR "F2F2F2"
-!define XPUI_TEXT_BGCOLOR "202020" ; irrelevant but still
-!define XPUI_TEXT_LIGHTCOLOR "B4C3EA"
-!define XPUI_ABORTWARNING
-!define XPUI_BRANDINGTEXT "NSIS Installer ${NSIS_VERSION}"
-!define XPUI_BRANDINGTEXT_COLOR_FG "b6d9ff"
-!define XPUI_BRANDINGTEXT_COLOR_BG "4c5b6b"
-!define XPUI_FASTERSKINNING
-!define XPUI_UNINSTALLER
-
-; MUI 1.67 compatible / XPUI 1.11 (2.0pre) compatible ------
-!ifndef XPUI_SYSDIR
-  !define XPUI_SYSDIR "C:\ExperienceUI\Contrib\ExperienceUI"
-!endif
-!include "${XPUI_SYSDIR}\..\..\Include\XPUI.nsh"
-
-; MUI Settings
-!define MUI_ABORTWARNING
-!define MUI_ICON "inst-resources\generic-install.ico"
-!define MUI_UNICON "inst-resources\generic-uninstall.ico"
-!include "WinMessages.nsh"
-
 ;
 ; INSTALL PAGES
 ;
 
 ; Welcome page
-!insertmacro XPUI_PAGE_WELCOME2
+${Page} Welcome2
+
 ; License page
-!insertmacro XPUI_PAGE_LICENSE "licenses\GPL.txt"
+${LicensePage} "licenses\GPL.txt"
+
 ; Stack selection - automatic unless both stacks are installed
 !include "pages\StackSelect.nsi"
+
 ; Database credentials entry
 !include "pages\DatabaseConfig.nsi"
+
 ; Site config page
 !include "pages\SiteConfig.nsi"
+
 ; User credentials page
 !include "pages\Login.nsi"
+
 ; Components page
-!insertmacro XPUI_PAGE_COMPONENTS
+${Page} Components
+
 ; Instfiles page
-!insertmacro XPUI_PAGE_INSTFILES
+${Page} InstFiles
+
 ; Finish page
 !define XPUI_FINISHPAGE_RUN
 !define XPUI_FINISHPAGE_CHECKBOX_RUN "Go to my new $(^Name) website now"
@@ -123,30 +106,24 @@ FunctionEnd
 Function OpenBitnamiWebsite
   ExecShell open "http://localhost$stack_portbit/${PRODUCT_SHORTNAME}/"
 FunctionEnd
-!insertmacro MUI_PAGE_FINISH
-
-!insertmacro XPUI_PAGE_ABORT
+${Page} Finish
+${Page} Abort
 
 ;
 ; UNINSTALL PAGES
 ;
 
-!insertmacro XPUI_PAGEMODE_UNINST
-!insertmacro XPUI_PAGE_WELCOME2
-!insertmacro XPUI_PAGE_INSTFILES
-!insertmacro XPUI_PAGE_FINISH
-
-; Language files
-!insertmacro MUI_LANGUAGE "English"
+${UnPage} Welcome2
+${UnPage} InstFiles
+${UnPage} Finish
 
 ; Reserve files
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 
-; MUI end ------
+; Language files
+${Language} "English"
 
-; File lists
-!include "inst-resources\core-files.nsh"
-; End file lists
+; MUI end ------
 
 Name "${PRODUCT_NAME}"
 Caption "${PRODUCT_NAME} ${PRODUCT_VERSION} Bitnami installer"
@@ -154,6 +131,10 @@ OutFile "enano-1.1.6-bitnami-setup.exe"
 InstallDir "$PROGRAMFILES\Enano CMS"
 ShowInstDetails show
 ShowUnInstDetails show
+
+; File lists
+!include "inst-resources\core-files.nsh"
+; End file lists
 
 Section "-pre"
   StrCpy $INSTDIR "$stack_instdir"
@@ -282,6 +263,26 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecGMP} "Enables PHP's GMP extension, which speeds up cryptographic operations."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
+Function .onInit
+  !ifdef UNINSTALL_DEBUG
+    WriteUninstaller "$EXEDIR\uninstall.exe"
+    MessageBox MB_OKCANCEL "Uninstaller written. OK to run installer, Cancel to quit" IDOK +2
+      Abort
+  !endif
+  Call BNSetWAMPInstalledFlag
+  Call BNSetWAPPInstalledFlag
+  
+  ; If neither WAMP nor WAPP is installed, die
+  StrCmp $wampstack_installed 0 "" FoundStack
+  StrCmp $wampstack_installed 0 "" FoundStack
+
+    MessageBox MB_OK|MB_ICONEXCLAMATION "Setup could not find any BitNami stacks on your server.$\r$\n\
+                                         $\r$\n\
+                                         Please install a BitNami stack and re-run setup. You can download a BitNami stack for free from http://www.bitnami.org."
+    Abort
+
+  FoundStack:
+FunctionEnd
 
 Function un.onInit
   

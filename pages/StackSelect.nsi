@@ -17,6 +17,9 @@ Function StackSelectCreate
 FunctionEnd
 
 Function StackSelectLeave
+  StrCmp $XPUI_ABORTED 1 0 +2
+    Return
+  
   ; Here is where we make the final decision on which stack will be used.
   IfFileExists "$PLUGINSDIR\StackSelect.ini" "" OnlyOneStackInstalled
   

@@ -43,6 +43,6 @@ FunctionEnd
 
 Function CleanCopyright
   Pop $0
-  ${str_replace} $0 "ï¿½" "&copy;" "$0"
+  ${str_replace} $0 "©" "&copy;" "$0"
   Push $0
 FunctionEnd
