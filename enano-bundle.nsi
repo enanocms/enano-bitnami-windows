@@ -2,7 +2,9 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Enano CMS"
+!ifndef PRODUCT_VERSION
 !define PRODUCT_VERSION "1.1.6"
+!endif
 !define PRODUCT_PUBLISHER "Enano CMS Project"
 !define PRODUCT_WEB_SITE "http://enanocms.org"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -127,7 +129,7 @@ ${Language} "English"
 
 Name "${PRODUCT_NAME}"
 Caption "${PRODUCT_NAME} ${PRODUCT_VERSION} Bitnami installer"
-OutFile "enano-1.1.6-bitnami-setup.exe"
+OutFile "enano-${PRODUCT_VERSION}-bitnami-setup.exe"
 InstallDir "$PROGRAMFILES\Enano CMS"
 ShowInstDetails show
 ShowUnInstDetails show
@@ -173,6 +175,7 @@ SectionEnd
 
 Section "Enano Core" SEC01
   SectionIn RO
+  CreateDirectory "$INSTDIR\apps\${PRODUCT_SHORTNAME}"
   WriteUninstaller "$INSTDIR\apps\${PRODUCT_SHORTNAME}\uninstall.exe"
   !insertmacro Core_Install
 SectionEnd
@@ -337,7 +340,7 @@ SectionEnd
 
 ; Version Information
 
-VIProductVersion "1.1.6.0"
+VIProductVersion "${PRODUCT_VERSION}.0"
 VIAddVersionKey /LANG=1033 "ProductName" "Enano CMS"
 VIAddVersionKey /LANG=1033 "Setup Information" "Enano CMS installer module for Windows Apache stacks"
 VIAddVersionKey /LANG=1033 "Comments" "This installer contains a beta build of Enano CMS, use with caution!"
