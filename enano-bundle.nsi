@@ -5,6 +5,9 @@
 !ifndef PRODUCT_VERSION
 !define PRODUCT_VERSION "1.1.6"
 !endif
+!ifndef PRODUCT_VERSION_APPEND
+!define PRODUCT_VERSION_APPEND ""
+!endif
 !define PRODUCT_PUBLISHER "Enano CMS Project"
 !define PRODUCT_WEB_SITE "http://enanocms.org"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -128,8 +131,8 @@ ${Language} "English"
 ; MUI end ------
 
 Name "${PRODUCT_NAME}"
-Caption "${PRODUCT_NAME} ${PRODUCT_VERSION} Bitnami installer"
-OutFile "enano-${PRODUCT_VERSION}-bitnami-setup.exe"
+Caption "${PRODUCT_NAME} ${PRODUCT_VERSION}${PRODUCT_VERSION_APPEND} Bitnami installer"
+OutFile "enano-${PRODUCT_VERSION}${PRODUCT_VERSION_APPEND}-bitnami-setup.exe"
 InstallDir "$PROGRAMFILES\Enano CMS"
 ShowInstDetails show
 ShowUnInstDetails show
@@ -248,7 +251,7 @@ SectionEnd
 Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\apps\${PRODUCT_SHORTNAME}\uninstall.exe"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}${PRODUCT_VERSION_APPEND}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
 SectionEnd
@@ -347,4 +350,4 @@ VIAddVersionKey /LANG=1033 "Comments" "This installer contains a beta build of E
 VIAddVersionKey /LANG=1033 "Publisher Name" "Neal Gompa (King InuYasha), Enano CMS Project"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "©2009 Enano CMS Project"
 VIAddVersionKey /LANG=1033 "FileDescription" "Enano - The CMS that focuses on what matters most: content."
-VIAddVersionKey /LANG=1033 "FileVersion" "${PRODUCT_VERSION}"
+VIAddVersionKey /LANG=1033 "FileVersion" "${PRODUCT_VERSION}${PRODUCT_VERSION_APPEND}"
