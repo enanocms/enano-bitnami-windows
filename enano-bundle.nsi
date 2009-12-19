@@ -196,6 +196,7 @@ Section "Enable GMP in PHP" SecGMP
     MessageBox MB_OK|MB_ICONEXCLAMATION "GMP was not automatically enabled in PHP. Logins will be several seconds slower."
 SectionEnd
 
+/*  Plugins components commented out, we don't plan on enabling this until at least 1.2.0 RC1
 Section "YubiKey auth plugin" SEC02
 SectionEnd
 
@@ -216,6 +217,8 @@ SectionEnd
 
 Section "Wiki functionality extensions" SEC12
 SectionEnd
+
+*/
 
 Section -ConfigureApache
   DetailPrint "Configuring Apache web server"
@@ -259,6 +262,8 @@ SectionEnd
 ; Section descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "Core components of Enano CMS, necessary to run Enano"
+  
+  /* Components disabled
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "Adds support for Yubikey authentication"
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC03} "An AJAX chatbox sidebar gadget for Enano"
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC04} "Provides a sidebar block that alerts you about unapproved comments, inactive users, and pages with requested deletion."
@@ -266,6 +271,8 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC08} "Provides a portal with news and static content combined onto one page."
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC11} "Parser extension that adds syntax highlighting support using the GeSHi highlighting engine."
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC12} "Adds several parser extensions that provide MediaWiki-like behavior, including references (footnotes) and Table of Contents support."
+  */
+  
   !insertmacro MUI_DESCRIPTION_TEXT ${SecGMP} "Enables PHP's GMP extension, which speeds up cryptographic operations."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
