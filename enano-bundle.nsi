@@ -336,8 +336,17 @@ Section Uninstall
   
   DetailPrint "Deleting files..."
   SetDetailsPrint listonly
+  
+; Remove shortcut stored in $INSTDIR
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
+  
   !insertmacro Core_Uninstall
   SetDetailsPrint both
+
+  ; Remove shortcuts in Start Menu
+  Delete "$SMPROGRAMS\Enano CMS\Website.lnk" 
+  Delete "$SMPROGRAMS\Enano CMS\Uninstall.lnk"
+  RMDir "$SMPROGRAMS\Enano CMS"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   SetAutoClose true
