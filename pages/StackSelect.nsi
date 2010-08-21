@@ -25,7 +25,14 @@ Function StackSelectLeave
   
     !macro ConfigCheck
       IfFileExists "$stack_instdir\apps\${PRODUCT_SHORTNAME}\htdocs\config.php" 0 +3
-        MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "Setup has found that $(^Name) is already installed on this stack. If you continue and you do not want to delete your existing site, you must provide the database information of the current installation on the next page. Otherwise, the existing installation's configuration file will be deleted and your existing website will be replaced with a fresh one.$\n$\nIf you are upgrading $(^Name), you can safely click Yes below, and enter the database information found in $stack_instdir\apps\${PRODUCT_SHORTNAME}\config.php on the next page.$\n$\nDo you want to continue?" IDYES +2
+        MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 \
+            "Setup has found that $(^Name) is already installed on this stack. If you continue and you do not want to delete your existing site, \
+             you must select $\"Upgrade or configure database manually$\" on the next page. Otherwise, the existing installation's configuration \
+             file and database will be deleted and your existing website will be replaced with a fresh one.$\n\
+             $\n\
+             If you are upgrading $(^Name), you can safely click Yes below, and select $\"Upgrade or configure database manually.$\"$\n\
+             $\n\
+             Do you want to continue?" IDYES +2
           Abort
     !macroend
   

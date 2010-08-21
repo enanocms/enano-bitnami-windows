@@ -1,6 +1,9 @@
 Page custom CredentialsCreate CredentialsLeave " - Admin login"
 
 Function CredentialsCreate
+  IntCmp $skip_install 0 +2
+    Abort
+  
   !insertmacro XPUI_HEADER_TEXT "Create administrator" "Enter your desired username and password for administering your site."
   !insertmacro XPUI_INSTALLOPTIONS_EXTRACT_AS "pages\Login.ini" "Login.ini"
   !insertmacro XPUI_INSTALLOPTIONS_DISPLAY "Login.ini"

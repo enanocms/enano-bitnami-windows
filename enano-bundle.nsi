@@ -143,18 +143,6 @@ ShowUnInstDetails show
 
 Section "-pre"
   StrCpy $INSTDIR "$stack_instdir"
-  StrCpy $skip_install 0
-  
-  StrCmp $db_needroot 0 0 SkipManualCheck
-    ; If we were given our own DB credentials and there's already a config, the installation needs to be skipped
-    IfFileExists "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php" 0 SkipManualCheck
-      StrCpy $skip_install 1
-      Return
-      
-  SkipManualCheck:
-  
-  IfFileExists "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php" 0 +2
-    Delete "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php"
 SectionEnd
 
 Section "-DatabaseSetup"
@@ -196,7 +184,7 @@ Section "Enable GMP in PHP" SecGMP
     MessageBox MB_OK|MB_ICONEXCLAMATION "GMP was not automatically enabled in PHP. Logins will be several seconds slower."
 SectionEnd
 
-/*  Plugins components commented out, we don't plan on enabling this until at least 1.2.0 RC1
+/*  Plugins components commented out, we do not plan on enabling this until at least 1.2.0 RC1
 Section "YubiKey auth plugin" SEC02
 SectionEnd
 
@@ -228,12 +216,19 @@ Section -ConfigureApache
   nsExec::Exec '"$SYSDIR\net.exe" start "$stack_typestackApache"'
   StrCmp $skip_install 1 0 +2
     Return
+    
+  SetOutPath "$INSTDIR\apps\${PRODUCT_SHORTNAME}\scripts"
+  File "inst-resources\selfdestruct.php"
+    
+  IfFileExists "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php" "" SkipDestruct
+    IntCmp $db_needroot 1 JustDeleteTheConfig
+	  nsExec::ExecToLog '"$INSTDIR\php\php.exe" "$INSTDIR\apps\${PRODUCT_SHORTNAME}\scripts\selfdestruct.php" --skip-revoke'
+    JustDeleteTheConfig:
+    Delete "$INSTDIR\apps\${PRODUCT_SHORTNAME}\htdocs\config.php"
+  SkipDestruct:
   
   Call enano_write_kickstart_script
   Call enano_run_kickstart_script
-  
-  SetOutPath "$INSTDIR\apps\${PRODUCT_SHORTNAME}\scripts"
-  File "inst-resources\selfdestruct.php"
 SectionEnd
 
 Section -InsertApplistEntry

@@ -1,6 +1,9 @@
 Page custom SiteConfigCreate SiteConfigLeave " - Configure site information"
 
 Function SiteConfigCreate
+  IntCmp $skip_install 0 +2
+    Abort
+  
   !insertmacro XPUI_INSTALLOPTIONS_EXTRACT_AS "pages\SiteConfig.ini" "SiteConfig.ini"
   !insertmacro XPUI_HEADER_TEXT "Configure website" "Enter basic information about your website."
   !insertmacro XPUI_INSTALLOPTIONS_DISPLAY "SiteConfig.ini"

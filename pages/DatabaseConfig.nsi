@@ -44,6 +44,16 @@ Function DatabaseConfigCreate
   !insertmacro XPUI_INSTALLOPTIONS_INITDIALOG "DatabaseConfig.ini"
   Pop $XPUI_HWND
   
+  ; Our bold font
+  CreateFont $2 "$(^Font)" "$(^FontSize)" 700
+  ; Paint controls
+  GetDlgItem $1 $XPUI_HWND 1200
+  SendMessage $1 ${WM_SETFONT} $2 0
+  GetDlgItem $1 $XPUI_HWND 1201
+  SendMessage $1 ${WM_SETFONT} $2 0
+  GetDlgItem $1 $XPUI_HWND 1214
+  SendMessage $1 ${WM_SETFONT} $2 0
+  
   IntCmp $R2 1 "" SkipHideManual
   
     ${ShowRange} $XPUI_HWND 1204 1207 ${SW_HIDE}
@@ -76,11 +86,14 @@ Function DatabaseConfigLeave
   ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Settings" "State"
   StrCmp $0 1 RadioButtonClicked
   StrCmp $0 2 RadioButtonClicked
+  StrCmp $0 15 RadioButtonClicked
   StrCmp $0 3 UseManualClicked
   Goto NextClicked
   
   RadioButtonClicked:
     LockWindow on
+	ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Field 15" "State"
+	IntCmp $0 1 SetBypass
     ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Field 1" "State"
     IntCmp $0 0 SetUseExisting
     
@@ -113,6 +126,22 @@ Function DatabaseConfigLeave
       ${ShowRange} $XPUI_HWND 1210 1213 ${SW_SHOW}
       LockWindow off
       Abort
+      
+    SetBypass:
+    	
+      ; Hide root password
+      GetDlgItem $0 $XPUI_HWND 1203
+      ShowWindow $0 ${SW_HIDE}
+      GetDlgItem $0 $XPUI_HWND 1209
+      ShowWindow $0 ${SW_HIDE}
+      
+      GetDlgItem $0 $XPUI_HWND 1202 ; Checkbox
+      SendMessage $0 ${BM_SETCHECK} ${BST_UNCHECKED} 0
+      EnableWindow $0 0
+      ${ShowRange} $XPUI_HWND 1204 1207 ${SW_HIDE}
+      ${ShowRange} $XPUI_HWND 1210 1213 ${SW_HIDE}
+      LockWindow off
+      Abort
     
   UseManualClicked:
     ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Field 3" "State"
@@ -125,6 +154,9 @@ Function DatabaseConfigLeave
 
     ; Figure out how we want to go about this.
     StrCpy $db_needroot 0
+    StrCpy $skip_install 0
+    ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Field 15" "State"
+    IntCmp $0 1 BypassInstaller
     ReadINIStr $0 "$PLUGINSDIR\DatabaseConfig.ini" "Field 1" "State"
     IntCmp $0 0 UseCustomLogin
     
@@ -173,18 +205,25 @@ Function DatabaseConfigLeave
         MessageBox MB_OK|MB_ICONEXCLAMATION "The username and password you entered are invalid. Please enter them again."
         Abort
         
+      /*
       ; This can be an error-prone process because entering credentials manually will keep
       ; the installer from touching the database. If tables already exist, Enano's installer
       ; will throw an error. Confirm this with the user.
-      MessageBox MB_YESNO|MB_ICONQUESTION "Do you really want to use manual database settings?$\r$\n\
+      MessageBox MB_YESNO|MB_ICONQUESTION "Are you sure you want to use manual database settings?$\r$\n\
                                            $\r$\n\
-                                           Setup will not attempt to modify your existing database. If there is \
-                                           already an installation of $(^Name) in the database, the installer will \
-                                           fail. This option is recommended only for advanced users." IDYES +2
+                                           Without your database root password, Setup cannot change your existing database. If there is an Enano installation \
+                                           in this database already, the installer will fail with this option; you should go back and choose the $\"Upgrade or \
+                                           configure database manually$\" option." IDYES +2
         Abort ; on No
+      */
       
       LockWindow on
       Return
+      
+    BypassInstaller:
+    	
+      ; No validation - the user opted to configure everything manually.
+      StrCpy $skip_install 1
       
     GenerateRandomLogin:
       StrCpy $db_name "bn_enanocms"
@@ -202,3 +241,4 @@ Function GenerateRandomPassword
   nsExec::ExecToStack '"$stack_instdir\php\php.exe" "$PLUGINSDIR\randompass.php"'
   Pop $R0
 FunctionEnd
+

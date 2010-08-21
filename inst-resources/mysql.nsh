@@ -34,11 +34,11 @@ Function mysql_create_db
   Pop $R0 ; Username
   
   ReadINIStr $R2 "$stack_instdir\properties.ini" "MySQL" "mysql_root_directory"
-  IfFileExists "$R2\data\$R3" 0 DatabaseDoesNotExist
-    MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "The database $\"$R3$\" already exists. Do you want to delete and recreate it?$\n$\nIf you choose No, Setup will not alter MySQL's permissions, and you may need to set up permissions manually." IDYES +2
-      Return
+  ; IfFileExists "$R2\data\$R3" 0 DatabaseDoesNotExist
+  ;   MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "The database $\"$R3$\" already exists. Do you want to delete and recreate it?$\n$\nIf you choose No, Setup will not alter MySQL's permissions, and you may need to set up permissions manually." IDYES +2
+  ;     Return                                
     
-  DatabaseDoesNotExist:
+  ; DatabaseDoesNotExist:
   
   SetOutPath $PLUGINSDIR
   File "inst-resources\mysqlutil.php"
